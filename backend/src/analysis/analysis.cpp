@@ -38,29 +38,20 @@ namespace analysis
   };
   CompositeAnalyzer::operator string() const
   {
-    string s = accumulate(
-        begin(this->items), end(this->items), string(),
-        [](string ss, string s)
-        { return ss.empty() ? s : ss + ", " + s; });
+    string s = accumulate(begin(this->items), end(this->items), string(), [](string ss, string s)
+                          { return ss.empty() ? s : ss + ", " + s; });
     string tokenizer_str = this->tokenizer.has_value()
                                ? string(this->tokenizer.value())
                                : string("null");
-    return format(
-        "CompositeAnalyzer(tokenizer={}, items=[{}])",
-        tokenizer_str,
-        s);
+    return format("CompositeAnalyzer(tokenizer={}, items=[{}])", tokenizer_str, s);
   }
   bool CompositeAnalyzer::has_morph()
   {
     if (tokenizer.has_value() and tokenizer.value().has_morph())
       return true;
     for (auto &item : items)
-    {
       if (item.has_morph())
-      {
         return true;
-      }
-    }
     return false;
   };
   void CompositeAnalyzer::add(const Composable &composable)
@@ -76,16 +67,10 @@ namespace analysis
   void CompositeAnalyzer::add(const CompositeAnalyzer &composite_analyzer)
   {
     for (const Composable &c : composite_analyzer.items)
-    {
       this->items.push_back(c);
-    }
   }
   // Token
-  Token::operator string() const
-  {
-
-    return format("Token(text=\"{}\", pos={})", text, pos);
-  }
+  Token::operator string() const { return format("Token(text=\"{}\", pos={})", text, pos); };
   Token::Token(bool chars, bool positions, bool stopped, bool remove_stops,
                float boost, int pos, int start_char, int end_char, string mode,
                string text, string original)
@@ -99,9 +84,7 @@ namespace analysis
         start_char(token.start_char), end_char(token.end_char), mode(token.mode), text(token.text),
         original(token.original) {};
   // Tokenizer
-  Tokenizer::Tokenizer(TokenizerConfig config)
-      : _end(),
-        config(config)
+  Tokenizer::Tokenizer(TokenizerConfig config) : _end(), config(config)
   {
     current_token = new Token(config.chars, config.positions, false, config.remove_stops, 1.0, 0);
     if (config.text != nullptr)
@@ -164,12 +147,10 @@ namespace analysis
 
   Token &Tokenizer::operator*() const { return *current_token; };
   Token *Tokenizer::operator->() const { return current_token; };
-
   void Tokenizer::handle_current_token()
   {
     if (current == _end)
     {
-      cout << "ended" << endl;
       this->reset();
       return;
     }
@@ -240,7 +221,6 @@ namespace analysis
     if (config.text != nullptr)
     {
       pattern = regex(config.pattern);
-      cout << config.pattern << endl;
       current = sregex_iterator(config.text->begin(), config.text->end(), pattern);
     }
     else
