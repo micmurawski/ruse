@@ -19,6 +19,8 @@
 namespace analysis
 {
   using namespace std;
+  using namespace std::string_literals;
+
   // Composable
   Composable::operator string() const
   {
@@ -97,12 +99,38 @@ namespace analysis
         start_char(token.start_char), end_char(token.end_char), mode(token.mode), text(token.text),
         original(token.original) {};
   // Tokenizer
+  Tokenizer::Tokenizer(TokenizerConfig config)
+      : _end(),
+        config(config)
+  {
+    current_token = new Token(config.chars, config.positions, false, config.remove_stops, 1.0, 0);
+    if (config.text != nullptr)
+    {
+      pattern = regex(config.pattern);
+      cout << config.pattern << endl;
+      current = sregex_iterator(config.text->begin(), config.text->end(), pattern);
+    }
+    else
+      current = sregex_iterator();
+    handle_current_token();
+  };
+  Tokenizer::Tokenizer(const Tokenizer &t) : Composable(), current(), _end()
+  {
+    this->config = TokenizerConfig(t.config);
+    this->prev_end = t.prev_end;
+
+    if (t.current_token != nullptr)
+      this->current_token = new Token(*t.current_token);
+
+    this->current = sregex_iterator(t.current);
+    this->_end = sregex_iterator();
+  };
+  Tokenizer::Tokenizer() : current(), _end() {};
   Tokenizer::operator string() const
   {
     return format("Tokenizer(pattern=\"{}\", positions={}, chars={}, mode=\"{}\")", config.pattern, config.positions, config.chars, config.mode);
   };
 
-  Tokenizer::Tokenizer() : current(), _end() {};
   Tokenizer &Tokenizer::begin() { return *this; }
   Tokenizer Tokenizer::end() const { return Tokenizer(); };
   bool Tokenizer::operator==(const Tokenizer &other) const { return current == other.current; };
@@ -203,4 +231,41 @@ namespace analysis
       prev_end = current->position() + current->length();
     }
   };
+  IDTokenizer::IDTokenizer(TokenizerConfig config) : Tokenizer()
+  {
+    this->config = config;
+    this->config.tokenize = false;
+
+    this->current_token = new Token(config.chars, config.positions, false, config.remove_stops, 1.0, 0);
+    if (config.text != nullptr)
+    {
+      pattern = regex(config.pattern);
+      cout << config.pattern << endl;
+      current = sregex_iterator(config.text->begin(), config.text->end(), pattern);
+    }
+    else
+      current = sregex_iterator();
+    handle_current_token();
+  }
+  template <typename L, typename R>
+  CompositeAnalyzer operator||(const L &left, const R &right)
+  {
+    cout << string(left) << "||" << string(right) << endl;
+    CompositeAnalyzer res{};
+
+    if constexpr (is_same<L, CompositeAnalyzer>::value)
+    {
+      if (left.tokenizer.has_value())
+        res.tokenizer = optional<Tokenizer>(left.tokenizer.value());
+    }
+    else if constexpr (is_same<R, CompositeAnalyzer>::value)
+    {
+      if (right.tokenizer.has_value())
+        res.tokenizer = optional<Tokenizer>(right.tokenizer.value());
+    }
+
+    res.add(left);
+    res.add(right);
+    return res;
+  }
 }
