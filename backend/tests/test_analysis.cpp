@@ -1,18 +1,19 @@
 #include "gtest/gtest.h"
 #include "analysis/analysis.hpp"
+#include <string>
+#include <vector>
 
-TEST(AnalysisTest, DummyTest)
-{
-    // This is just a dummy test
-    EXPECT_EQ(1, 1);
-}
+using namespace std;
+using namespace analysis;
+using namespace std::string_literals;
 
-TEST(ComposableTest, Test1)
+TEST(AnalysisTest, TestTokenizer)
 {
-    using namespace analysis;
-    Composable c1 = Composable();
-    CompositeAnalyzer c2 = CompositeAnalyzer();
-    // CompositeAnalyzer c3 = c1 || c2;
+    TokenizerConfig config = TokenizerConfig();
+    string test_string = "AAAaaaBBBbbbCCCcccDDDddd"s;
+    config.text = &test_string;
+    Tokenizer regex_tokenizer = Tokenizer(config);
+    // vector<Token> tokens = vector(begin(regex_tokenizer), end(regex_tokenizer));
 }
 
 #ifdef __APPLE__

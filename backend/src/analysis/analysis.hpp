@@ -12,6 +12,21 @@ using namespace std;
 
 namespace analysis
 {
+  using namespace string_literals;
+  struct TokenizerConfig
+  {
+    string *text = nullptr;
+    string pattern = "[\\w\\*]+(\\.?[\\w\\*]+)*"s;
+    bool tokenize = true;
+    bool gaps = false;
+    bool positions = false;
+    bool chars = false;
+    bool keep_original = false;
+    bool remove_stops = true;
+    int start_pos = 0;
+    int start_char = 0;
+    string mode = "";
+  };
   class Token
   {
   public:
@@ -30,6 +45,7 @@ namespace analysis
           bool remove_stops = true, float boost = 1.0, int pos = 0,
           int start_char = 0, int end_char = 0, string mode = "",
           string text = "", string original = "");
+    Token(const Token &token);
     operator string() const;
   };
   class Composable
@@ -49,86 +65,84 @@ namespace analysis
 
   class Tokenizer : public Composable
   {
+  protected:
+    regex pattern;
+    sregex_iterator current;
+    sregex_iterator _end;
+    int prev_end = 0;
+    Token *current_token = nullptr;
+    void reset();
+
   public:
-    bool positions;
-    bool chars;
-    bool keep_original;
-    bool remove_stops;
-    int start_pos;
-    int start_char;
-    string mode;
-    map<string, any> args;
-    bool done;
-    shared_ptr<Token> current_token;
+    TokenizerConfig config;
 
     using iterator_category = forward_iterator_tag;
-    using value_type = string;
+    using value_type = Token;
     using difference_type = ptrdiff_t;
     using pointer = Token *;
     using reference = Token &;
     operator string() const;
 
-    Tokenizer(bool positions = false, bool chars = false,
-              bool keep_original = false, bool remove_stops = true,
-              int start_pos = 0, int start_char = 0, string mode = "",
-              map<string, any> args = map<string, any>());
-
-    reference operator*() const;
-    pointer operator->() const;
-    value_type operator()();
-    Tokenizer &operator++();
-    bool operator==(const Tokenizer &other) const;
-    bool operator!=(const Tokenizer &other) const;
-    Tokenizer operator++(int);
-    Tokenizer begin();
-    Tokenizer end();
-  };
-
-  class RegexTokenizer : public Tokenizer
-  {
-  private:
-    string *text = nullptr;
-    sregex_iterator current;
-    sregex_iterator _end;
-    int prev_end = 0;
-
-  public:
-    bool tokenize;
-    bool gaps;
-    template <typename... Args>
-
-    RegexTokenizer(regex pattern = regex("[\\w\\*]+(\\.?[\\w\\*]+)*"),
-                   string *text = nullptr, bool tokenize = true,
-                   bool gaps = false, Args... args)
-        : Tokenizer(args...), text(text),
-          current(text->begin(), text->end(), pattern), _end(),
-          tokenize(tokenize), gaps(gaps)
+    Tokenizer(TokenizerConfig config)
+        : _end(),
+          config(config)
     {
-      Token _token = Token(chars = chars, positions = positions,
-                           remove_stops = remove_stops);
-      current_token = make_shared<Token>(_token);
+      current_token = new Token(config.chars, config.positions, false, config.remove_stops, 1.0, 0);
+      if (config.text != nullptr)
+      {
+        pattern = regex(config.pattern);
+        cout << config.pattern << endl;
+        current = sregex_iterator(config.text->begin(), config.text->end(), pattern);
+      }
+      else
+        current = sregex_iterator();
       handle_current_token();
     };
-    RegexTokenizer();
-    RegexTokenizer &begin();
-    RegexTokenizer end() const;
+    Tokenizer();
+    Tokenizer(const Tokenizer &t) : Composable(), current(), _end()
+    {
+      this->config = TokenizerConfig(t.config);
+      this->prev_end = t.prev_end;
 
-    bool operator==(const RegexTokenizer &other) const;
-    bool operator!=(const RegexTokenizer &other) const;
+      if (t.current_token != nullptr)
+        this->current_token = new Token(*t.current_token);
+
+      this->current = sregex_iterator(t.current);
+      this->_end = sregex_iterator();
+    }
+    Tokenizer &begin();
+    Tokenizer end() const;
+
+    bool operator==(const Tokenizer &other) const;
+    bool operator!=(const Tokenizer &other) const;
     void handle_current_token();
-    RegexTokenizer &operator++();
+    Tokenizer &operator++();
+    Tokenizer operator++(int);
+    reference operator*() const;
+    pointer operator->() const;
   };
 
   class IDTokenizer : public Tokenizer
   {
   public:
-    string *text = nullptr;
-    template <typename... Args>
-    IDTokenizer(string *text = nullptr, Args... args);
-    IDTokenizer &operator++();
-    IDTokenizer begin();
-    IDTokenizer end();
+    IDTokenizer(TokenizerConfig config) : Tokenizer()
+    {
+      this->config = config;
+      this->config.tokenize = false;
+
+      this->current_token = new Token(config.chars, config.positions, false, config.remove_stops, 1.0, 0);
+      if (config.text != nullptr)
+      {
+        pattern = regex(config.pattern);
+        cout << config.pattern << endl;
+        current = sregex_iterator(config.text->begin(), config.text->end(), pattern);
+      }
+      else
+        current = sregex_iterator();
+      handle_current_token();
+    }
   };
+
   class CompositeAnalyzer : public Composable
   {
 
