@@ -7,7 +7,9 @@
 #include <memory>
 #include <optional>
 #include <regex>
-
+#include <vector>
+#include <numeric>
+#include <string>
 namespace analysis
 {
   using namespace std;
@@ -44,7 +46,10 @@ namespace analysis
           bool remove_stops = true, float boost = 1.0, int pos = 0,
           int start_char = 0, int end_char = 0, string mode = "",
           string text = "", string original = "");
+    Token(string text, int pos);
     Token(const Token &token);
+    Token(const char *str, int pos);
+    bool operator==(const Token &another) const;
     operator string() const;
   };
   class Composable
@@ -122,4 +127,14 @@ namespace analysis
 
   template <typename L, typename R>
   CompositeAnalyzer operator||(const L &left, const R &right);
+
+  template <typename T>
+  string join(vector<T> const &vec, string delim)
+  {
+    if (vec.empty())
+      return string();
+
+    return accumulate(vec.begin() + 1, vec.end(), string(vec[0]), [](const string &a, T b)
+                      { return a + ", " + string(b); });
+  };
 }

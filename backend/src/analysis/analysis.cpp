@@ -70,7 +70,7 @@ namespace analysis
       this->items.push_back(c);
   }
   // Token
-  Token::operator string() const { return format("Token(text=\"{}\", pos={})", text, pos); };
+  Token::operator string() const { return format("Token(text=\"{}\", pos={}, original=\"{}\")", text, pos, original); };
   Token::Token(bool chars, bool positions, bool stopped, bool remove_stops,
                float boost, int pos, int start_char, int end_char, string mode,
                string text, string original)
@@ -83,10 +83,18 @@ namespace analysis
         remove_stops(token.remove_stops), boost(token.boost), pos(token.pos),
         start_char(token.start_char), end_char(token.end_char), mode(token.mode), text(token.text),
         original(token.original) {};
+  Token::Token(string text, int pos) : pos(pos), text(text) {};
+  Token::Token(const char *str, int pos) : pos(pos), text(string(str)) {};
+  bool Token::operator==(const Token &another) const
+  {
+    return this->text == another.text && this->pos == another.pos && this->original == another.original;
+  };
   // Tokenizer
   Tokenizer::Tokenizer(TokenizerConfig config) : _end(), config(config)
   {
     current_token = new Token(config.chars, config.positions, false, config.remove_stops, 1.0, 0);
+    if (config.positions)
+      current_token->pos = -1;
     if (config.text != nullptr)
     {
       pattern = regex(config.pattern);
@@ -163,7 +171,8 @@ namespace analysis
         return;
       }
       current_token->text = *config.text;
-      current_token->original = *config.text;
+      if (config.keep_original)
+        current_token->original = *config.text;
       if (config.positions)
         current_token->pos = 0;
       if (config.chars)
@@ -248,4 +257,10 @@ namespace analysis
     res.add(right);
     return res;
   }
+
+  // bool operator==(const Token &left, const Token &right) { return left.text == right.text; };
+  // bool operator==(const vector<Token> &left, const vector<Token> &right)
+  //{
+  //   return std::equal(left.begin(), left.end(), right.begin());
+  // };
 }
