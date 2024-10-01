@@ -15,7 +15,7 @@ TEST(AnalysisTest, TestRegexTokenizer)
     config.text = &test_string;
     config.pattern = "[A-Z]+";
     config.positions = true;
-    Tokenizer regex_tokenizer = Tokenizer(config);
+    RegexTokenizer regex_tokenizer = RegexTokenizer(config);
     vector<Token> tokens = vector(begin(regex_tokenizer), end(regex_tokenizer));
     vector<Token> expected_tokens{
         Token("AAA", 0),
@@ -41,6 +41,20 @@ TEST(AnalysisTest, TestIOTokenizer)
     string expected_tokens_str = format("[{}]", join(expected_tokens, ", "));
     string tokens_str = format("[{}]", join(tokens, ", "));
     EXPECT_EQ(tokens, expected_tokens) << format("failure: {} != {}", tokens_str, expected_tokens_str);
+}
+
+TEST(AnalysisTest, PathTokenizer)
+{
+    string test_string = "/alfa/bravo/charlie/delta/";
+    // PathTokenizer path_tokenizer = PathTokenizer();
+    // path_tokenizer.config.text = &test_string;
+    // vector<Token> tokens = vector(begin(path_tokenizer), end(path_tokenizer));
+    // vector<Token> expected_tokens{
+    //     Token("AAAaaaBBBbbbCCCcccDDDddd", 0),
+    // };
+    // string expected_tokens_str = format("[{}]", join(expected_tokens, ", "));
+    // string tokens_str = format("[{}]", join(tokens, ", "));
+    // EXPECT_EQ(tokens, expected_tokens) << format("failure: {} != {}", tokens_str, expected_tokens_str);
 }
 
 #ifdef __APPLE__

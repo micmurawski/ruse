@@ -16,10 +16,11 @@
 #include <vector>
 #include <typeinfo>
 
+using namespace std;
+using namespace std::string_literals;
+
 namespace analysis
 {
-  using namespace std;
-  using namespace std::string_literals;
 
   // Composable
   Composable::operator string() const
@@ -29,14 +30,17 @@ namespace analysis
   bool Composable::has_morph() { return is_morph; }
 
   // CompositeAnalyzer
-  CompositeAnalyzer::CompositeAnalyzer() : Composable() {};
-  CompositeAnalyzer::CompositeAnalyzer(initializer_list<Composable> composables,
-                                       optional<Tokenizer> tokenizer)
+  template <typename T>
+  CompositeAnalyzer<T>::CompositeAnalyzer() : Composable(){};
+  template <typename T>
+  CompositeAnalyzer<T>::CompositeAnalyzer(initializer_list<Composable> composables,
+                                          optional<Tokenizer<T>> tokenizer)
       : Composable(), tokenizer(tokenizer)
   {
     items.insert(items.end(), composables.begin(), composables.end());
   };
-  CompositeAnalyzer::operator string() const
+  template <typename T>
+  CompositeAnalyzer<T>::operator string() const
   {
     string s = accumulate(begin(this->items), end(this->items), string(), [](string ss, string s)
                           { return ss.empty() ? s : ss + ", " + s; });
@@ -45,7 +49,8 @@ namespace analysis
                                : string("null");
     return format("CompositeAnalyzer(tokenizer={}, items=[{}])", tokenizer_str, s);
   }
-  bool CompositeAnalyzer::has_morph()
+  template <typename T>
+  bool CompositeAnalyzer<T>::has_morph()
   {
     if (tokenizer.has_value() and tokenizer.value().has_morph())
       return true;
@@ -54,17 +59,20 @@ namespace analysis
         return true;
     return false;
   };
-  void CompositeAnalyzer::add(const Composable &composable)
+  template <typename T>
+  void CompositeAnalyzer<T>::add(const Composable &composable)
   {
     items.push_back(composable);
   }
-  void CompositeAnalyzer::add(const Tokenizer &_tokenizer)
+  template <typename T>
+  void CompositeAnalyzer<T>::add(const Tokenizer<T> &_tokenizer)
   {
     if (tokenizer.has_value())
       throw runtime_error("Tokenizer is already assigned");
-    tokenizer = optional<Tokenizer>{_tokenizer};
+    tokenizer = optional<Tokenizer<T>>{_tokenizer};
   }
-  void CompositeAnalyzer::add(const CompositeAnalyzer &composite_analyzer)
+  template <typename T>
+  void CompositeAnalyzer<T>::add(const CompositeAnalyzer &composite_analyzer)
   {
     for (const Composable &c : composite_analyzer.items)
       this->items.push_back(c);
@@ -89,23 +97,17 @@ namespace analysis
   {
     return this->text == another.text && this->pos == another.pos && this->original == another.original;
   };
-  // Tokenizer
-  Tokenizer::Tokenizer(TokenizerConfig config) : _end(), config(config)
+  // RegexTokenizer
+  RegexTokenizer::RegexTokenizer(TokenizerConfig config) : current(), _end(), config(config)
   {
-    current_token = new Token(config.chars, config.positions, false, config.remove_stops, 1.0, 0);
-    if (config.positions)
-      current_token->pos = -1;
     if (config.text != nullptr)
     {
       pattern = regex(config.pattern);
-      cout << config.pattern << endl;
       current = sregex_iterator(config.text->begin(), config.text->end(), pattern);
     }
-    else
-      current = sregex_iterator();
     handle_current_token();
   };
-  Tokenizer::Tokenizer(const Tokenizer &t) : Composable(), current(), _end()
+  RegexTokenizer::RegexTokenizer(const RegexTokenizer &t) : Composable(), current(), _end()
   {
     this->config = TokenizerConfig(t.config);
     this->prev_end = t.prev_end;
@@ -116,17 +118,13 @@ namespace analysis
     this->current = sregex_iterator(t.current);
     this->_end = sregex_iterator();
   };
-  Tokenizer::Tokenizer() : current(), _end() {};
-  Tokenizer::operator string() const
+  RegexTokenizer::operator string() const
   {
-    return format("Tokenizer(pattern=\"{}\", positions={}, chars={}, mode=\"{}\")", config.pattern, config.positions, config.chars, config.mode);
+    return format("RegexTokenizer(pattern=\"{}\", positions={}, chars={}, mode=\"{}\")", config.pattern, config.positions, config.chars, config.mode);
   };
 
-  Tokenizer &Tokenizer::begin() { return *this; }
-  Tokenizer Tokenizer::end() const { return Tokenizer(); };
-  bool Tokenizer::operator==(const Tokenizer &other) const { return current == other.current; };
-  bool Tokenizer::operator!=(const Tokenizer &other) const { return !(*this == other); };
-  void Tokenizer::reset()
+  bool RegexTokenizer::operator==(const RegexTokenizer &other) const { return current == other.current; };
+  void RegexTokenizer::reset()
   {
     prev_end = 0;
     if (current_token != nullptr)
@@ -135,53 +133,43 @@ namespace analysis
       current_token = nullptr;
     }
   };
-  Tokenizer Tokenizer::operator++(int)
-  {
-    Tokenizer tmp = *this;
-    ++(*this);
-    return tmp;
-  };
-  Tokenizer &Tokenizer::operator++()
-  {
 
-    if (current != _end)
-    {
-      current++;
-      handle_current_token();
-    }
-
-    return *this;
-  };
-
-  Token &Tokenizer::operator*() const { return *current_token; };
-  Token *Tokenizer::operator->() const { return current_token; };
-  void Tokenizer::handle_current_token()
+  void RegexTokenizer::handle_current_token()
   {
     if (current == _end)
     {
       this->reset();
       return;
     }
-
-    if (!config.tokenize)
+    else if (Tokenizer::current_token == nullptr)
     {
-      if (current_token->text == *config.text)
-      {
-        current = _end;
-        return;
-      }
-      current_token->text = *config.text;
-      if (config.keep_original)
-        current_token->original = *config.text;
+      Tokenizer::current_token = new Token(config.chars, config.positions, false, config.remove_stops, 1.0, 0);
       if (config.positions)
-        current_token->pos = 0;
-      if (config.chars)
+        Tokenizer::current_token->pos = -1;
+
+      if (!config.tokenize)
       {
-        current_token->start_char = config.start_char;
-        current_token->end_char = config.start_char + static_cast<int>(config.text->length());
+        if (current_token->text == *config.text)
+        {
+          current = _end;
+          return;
+        }
+        current_token->text = *config.text;
+        if (config.keep_original)
+          current_token->original = *config.text;
+        if (config.positions)
+          current_token->pos = 0;
+        if (config.chars)
+        {
+          current_token->start_char = config.start_char;
+          current_token->end_char = config.start_char + static_cast<int>(config.text->length());
+        }
       }
     }
-    else if (!config.gaps)
+    else
+      current++;
+
+    if (!config.gaps)
     {
       if (current != _end)
       {
@@ -221,46 +209,31 @@ namespace analysis
       prev_end = current->position() + current->length();
     }
   };
-  IDTokenizer::IDTokenizer(TokenizerConfig config) : Tokenizer()
-  {
-    this->config = config;
-    this->config.tokenize = false;
 
-    this->current_token = new Token(config.chars, config.positions, false, config.remove_stops, 1.0, 0);
-    if (config.text != nullptr)
-    {
-      pattern = regex(config.pattern);
-      current = sregex_iterator(config.text->begin(), config.text->end(), pattern);
-    }
-    else
-      current = sregex_iterator();
-    handle_current_token();
-  }
-  template <typename L, typename R>
-  CompositeAnalyzer operator||(const L &left, const R &right)
+  template <typename T, typename L, typename R>
+  CompositeAnalyzer<T> operator||(const L &left, const R &right)
   {
-    cout << string(left) << "||" << string(right) << endl;
-    CompositeAnalyzer res{};
+    CompositeAnalyzer<T> res{};
 
-    if constexpr (is_same<L, CompositeAnalyzer>::value)
+    if constexpr (is_same<L, CompositeAnalyzer<T>>::value)
     {
       if (left.tokenizer.has_value())
-        res.tokenizer = optional<Tokenizer>(left.tokenizer.value());
+        res.tokenizer = optional<Tokenizer<T>>(left.tokenizer.value());
     }
-    else if constexpr (is_same<R, CompositeAnalyzer>::value)
+    else if constexpr (is_same<R, CompositeAnalyzer<T>>::value)
     {
       if (right.tokenizer.has_value())
-        res.tokenizer = optional<Tokenizer>(right.tokenizer.value());
+        res.tokenizer = optional<Tokenizer<T>>(right.tokenizer.value());
     }
 
     res.add(left);
     res.add(right);
     return res;
-  }
-
-  // bool operator==(const Token &left, const Token &right) { return left.text == right.text; };
-  // bool operator==(const vector<Token> &left, const vector<Token> &right)
-  //{
-  //   return std::equal(left.begin(), left.end(), right.begin());
-  // };
+  };
 }
+
+// bool operator==(const Token &left, const Token &right) { return left.text == right.text; };
+// bool operator==(const vector<Token> &left, const vector<Token> &right)
+//{
+//   return std::equal(left.begin(), left.end(), right.begin());
+// };

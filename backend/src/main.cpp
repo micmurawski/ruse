@@ -18,59 +18,42 @@ int main()
 
     using namespace analysis;
     using namespace std::string_literals;
+    TokenizerConfig config = TokenizerConfig();
+    string test_string = "AAAaaaBBBbbbCCCcccDDDddd";
+    config.pattern = "[A-Z]+";
 
-    TokenizerConfig tokenizer_config = TokenizerConfig();
-    string test_string = "AAAaaaBBBbbbCCCcccDDDddd"s;
-    tokenizer_config.text = &test_string;
-    tokenizer_config.pattern = "[A-Z]+";
-    tokenizer_config.positions = true;
-    // Tokenizer regex_tokenizer_1 = Tokenizer(tokenizer_config);
-
-    // std::cout << std::string(regex_tokenizer_1) << std::endl;
-    // for (auto &t : regex_tokenizer_1)
-    //{
-    //     std::cout << std::string(t) << std::endl;
-    // }
-    //  return 0;
-    //   std::cout << "FIRST= " << std::string(t1.value()) << std::endl;
-    //   std::cout << "LAST= " << std::string(t2.value()) << std::endl;
-    Tokenizer regex_tokenizer_2 = Tokenizer(tokenizer_config);
-
-    auto tokens = make_vector(regex_tokenizer_2.begin(), regex_tokenizer_2.end());
+    // string test_string = "/alfa/bravo/charlie/delta/";
+    // config.pattern = "[^/]+";
+    config.text = &test_string;
+    config.positions = true;
+    RegexTokenizer id_tokenizer = RegexTokenizer({.text = &test_string, .positions = true, .pattern = "[A-Z]+"});
+    // vector<Token> tokens = vector(id_tokenizer.begin(), id_tokenizer.end());
+    //// cout << typeid(id_tokenizer++).name() << endl;
     //
-    for (auto &t : tokens)
-    {
-        std::cout << std::string(t) << std::endl;
-    }
-    IDTokenizer id_tokenizer = IDTokenizer(tokenizer_config);
     for (auto &t : id_tokenizer)
     {
-        std::cout << std::string(t) << std::endl;
+        cout << string(t) << endl;
     }
-    vector<Token> expected_tokens{
-        Token("AAA", 1),
-        Token("BBB", 2),
-        Token("CCC", 3),
-        Token("DDD", 4),
-    };
-    // Token t1 = Token("abc", 0);
-    // Token t2 = Token("abc", 2);
-    bool _eq = std::equal(tokens.begin(), tokens.end(), expected_tokens.begin());
-    cout << _eq << endl;
-    //  sregex_iterator words_begin = sregex_iterator(test_string.begin(), test_string.end(), regex_1);
-    //  sregex_iterator words_end = sregex_iterator();
-    //  auto tokens2 = std::vector(words_begin, words_end);
-    //
-    //  for (const auto &t : tokens2)
-    //  {
-    //      cout << t.str() << endl;
+    string test_string_path = "/alfa/bravo/charlie/delta/";
+    PathTokenizer path_tokenizer = PathTokenizer({.text = &test_string_path, .positions = true});
+    for (auto &t : path_tokenizer)
+    {
+        cout << string(t) << endl;
+    }
+
+    // regex _regex = regex("[^/]+");
+    // sregex_iterator current = sregex_iterator(test_string_path.begin(), test_string_path.end(), _regex);
+    // sregex_iterator _end = sregex_iterator();
+    // for (; current != _end; current++)
+    //{
+    //     auto match = *current;
+    //     cout << match.str() << endl;
+    // }
+    //  vector<Token> tokens = vector(path_tokenizer.begin(), path_tokenizer.end());
+    //  for (;path_tokenizer != path_tokenizer.end(); path_tokenizer++)
+    //{
+    //      std::cout << std::string(*path_tokenizer) << std::endl;
     //  }
-    //  //for (std::sregex_iterator i = words_begin; i != words_end; ++i)
-    //  //{
-    //  //    smatch match = *i;
-    //  //    string match_str = match.str();
-    //  //    cout << match_str << '\n';
-    //  //}
 
     return 0;
 }
