@@ -97,6 +97,62 @@ namespace analysis
   {
     return this->text == another.text && this->pos == another.pos && this->original == another.original;
   };
+  // Tokenizer
+  template <typename Impl>
+  Impl &Tokenizer<Impl>::operator++()
+  {
+    handle_current_token();
+    Impl &tokenizer = static_cast<Impl &>(*this);
+    return tokenizer;
+  };
+  template <typename Impl>
+  Impl Tokenizer<Impl>::operator++(int)
+  {
+    Impl tmp(static_cast<Impl &>(*this));
+    operator++();
+    return tmp;
+  };
+  template <typename Impl>
+  void Tokenizer<Impl>::reset()
+  {
+    if (current_token != nullptr)
+    {
+      delete current_token;
+      current_token = nullptr;
+    }
+  };
+  template <typename Impl>
+  Impl Tokenizer<Impl>::end() const
+  {
+    Impl tokenizer = Impl();
+    return tokenizer;
+  };
+  template <typename Impl>
+  bool Tokenizer<Impl>::operator!=(const Impl &other) const { return !(*this == other); }
+
+  // IDTokenizer
+  IDTokenizer::IDTokenizer(TokenizerConfig config, bool _end) : _end(_end), config(config)
+  {
+    current_token = new Token(config.chars, config.positions, true, config.remove_stops, 1.0, 0);
+  };
+  IDTokenizer &IDTokenizer::operator++()
+  {
+    if (_end)
+      return *this;
+
+    if (config.text)
+      current_token->text = *config.text;
+    _end = true;
+
+    return *this;
+  };
+  IDTokenizer IDTokenizer::operator++(int)
+  {
+    IDTokenizer tmp(*this);
+    operator++();
+    return tmp;
+  };
+  bool IDTokenizer::operator==(const IDTokenizer &other) { return this->_end == other._end; };
   // RegexTokenizer
   RegexTokenizer::RegexTokenizer(TokenizerConfig config) : current(), _end(), config(config)
   {
@@ -209,6 +265,62 @@ namespace analysis
       prev_end = current->position() + current->length();
     }
   };
+  // PathTokenizer
+  PathTokenizer::PathTokenizer(TokenizerConfig config) : current(), _end(), config(config)
+  {
+    config.pattern = "[^/]+";
+
+    if (config.text != nullptr)
+    {
+      pattern = regex(config.pattern);
+      current = sregex_iterator(config.text->begin(), config.text->end(), pattern);
+    }
+    handle_current_token();
+  };
+  PathTokenizer::PathTokenizer(const PathTokenizer &t) : Composable(), current(), _end()
+  {
+    this->config = TokenizerConfig(t.config);
+    this->prev_end = t.prev_end;
+
+    if (t.current_token != nullptr)
+      this->current_token = new Token(*t.current_token);
+
+    this->current = sregex_iterator(t.current);
+    this->_end = sregex_iterator();
+  };
+  bool PathTokenizer::operator==(const PathTokenizer &other) const { return current == other.current; };
+  void PathTokenizer::handle_current_token()
+  {
+
+    if (current == _end)
+    {
+      reset();
+      return;
+    }
+
+    if (current_token == nullptr)
+    {
+      current_token = new Token(config.chars, config.positions, false, config.remove_stops, 1.0, 0);
+      if (config.text != nullptr)
+      {
+        int __end = current->position() + config.text->length();
+        current_token->text = config.text->substr(0, __end);
+        return;
+      }
+    }
+    else
+    {
+      current++;
+      if (current != _end)
+      {
+        current_token->text = config.text->substr(current->position(), config.text->length());
+        if (config.positions)
+          current_token->pos++;
+        if (config.keep_original)
+          current_token->original = *config.text;
+      }
+    }
+  }
 
   template <typename T, typename L, typename R>
   CompositeAnalyzer<T> operator||(const L &left, const R &right)

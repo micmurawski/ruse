@@ -73,19 +73,8 @@ namespace analysis
 
   protected:
     Token *current_token = nullptr;
-    virtual void handle_current_token()
-    {
-      cout << "old nxt" << endl;
-      return;
-    };
-    virtual void reset()
-    {
-      if (current_token != nullptr)
-      {
-        delete current_token;
-        current_token = nullptr;
-      }
-    }
+    virtual void handle_current_token() {};
+    virtual void reset();
 
   public:
     using iterator_category = forward_iterator_tag;
@@ -94,35 +83,13 @@ namespace analysis
     using pointer = Token *;
     using reference = Token &;
 
-    virtual Impl &operator++()
-    {
-      handle_current_token();
-      Impl &tokenizer = static_cast<Impl &>(*this);
-      return tokenizer;
-    };
-
-    virtual Impl operator++(int)
-    {
-      Impl tmp(static_cast<Impl &>(*this));
-      operator++();
-      return tmp;
-    };
+    virtual Impl &operator++();
+    virtual Impl operator++(int);
     Token &operator*() const { return *current_token; };
     Token *operator->() const { return current_token; };
     Impl &begin() { return static_cast<Impl &>(*this); };
-    virtual Impl end() const
-    {
-      Impl tokenizer = Impl();
-      cout << "end generated" << endl;
-      return tokenizer;
-    };
-    bool operator!=(const Impl &other) const
-    {
-      cout << "end" << endl;
-      bool _val = !(*this == other);
-      cout << _val << endl;
-      return _val;
-    };
+    virtual Impl end() const;
+    bool operator!=(const Impl &other) const;
   };
 
   class RegexTokenizer : public Tokenizer<RegexTokenizer>, public Composable
@@ -151,31 +118,13 @@ namespace analysis
 
   public:
     TokenizerConfig config;
-    IDTokenizer(TokenizerConfig config = TokenizerConfig(), bool _end = false) : _end(_end), config(config)
-    {
-      current_token = new Token(config.chars, config.positions, true, config.remove_stops, 1.0, 0);
-    };
+    IDTokenizer(TokenizerConfig config = TokenizerConfig(), bool _end = false);
     IDTokenizer end() const override { return IDTokenizer({}, true); };
-    IDTokenizer &operator++() override
-    {
-      if (_end)
-        return *this;
-
-      if (config.text)
-        current_token->text = *config.text;
-      _end = true;
-
-      return *this;
-    };
-    IDTokenizer operator++(int) override
-    {
-      IDTokenizer tmp(*this);
-      operator++();
-      return tmp;
-    };
-    bool operator==(const IDTokenizer &other) { return this->_end == other._end; }
+    IDTokenizer &operator++() override;
+    IDTokenizer operator++(int) override;
+    bool operator==(const IDTokenizer &other);
   };
-  class PathTokenizer : public Tokenizer<PathTokenizer>
+  class PathTokenizer : public Tokenizer<PathTokenizer>, public Composable
   {
   protected:
     regex pattern;
@@ -185,52 +134,11 @@ namespace analysis
 
   public:
     TokenizerConfig config;
-    PathTokenizer(TokenizerConfig config = TokenizerConfig()) : current(), _end(), config(config)
-    {
-      config.pattern = "[^/]+";
+    PathTokenizer(TokenizerConfig config = TokenizerConfig());
+    PathTokenizer(const PathTokenizer &t);
 
-      if (config.text != nullptr)
-      {
-        pattern = regex(config.pattern);
-        current = sregex_iterator(config.text->begin(), config.text->end(), pattern);
-      }
-      handle_current_token();
-    };
-
-    bool operator==(const PathTokenizer &other) const { return current == other.current; };
-    void handle_current_token() override
-    {
-
-      if (current == _end)
-      {
-        reset();
-        return;
-      }
-
-      if (current_token == nullptr)
-      {
-        current_token = new Token(config.chars, config.positions, false, config.remove_stops, 1.0, 0);
-        if (config.text != nullptr)
-        {
-          int __end = current->position() + config.text->length();
-          cout << config.text->substr(0, __end) << endl;
-          current_token->text = config.text->substr(0, __end);
-          return;
-        }
-      }
-      else
-      {
-        current++;
-        if (current != _end)
-        {
-          current_token->text = config.text->substr(current->position(), config.text->length());
-          if (config.positions)
-            current_token->pos++;
-          if (config.keep_original)
-            current_token->original = *config.text;
-        }
-      }
-    }
+    bool operator==(const PathTokenizer &other) const;
+    void handle_current_token();
   };
   template <typename T>
   class CompositeAnalyzer : public Composable
@@ -258,7 +166,6 @@ namespace analysis
   {
     if (vec.empty())
       return string();
-
     return accumulate(vec.begin() + 1, vec.end(), string(vec[0]), [](const string &a, T b)
                       { return a + ", " + string(b); });
   };
