@@ -21,18 +21,18 @@ int main()
      string test_string = "/alfa/bravo/charlie/delta/";
     PathTokenizer path_tokenizer = PathTokenizer({.text = &test_string, .positions = true});
     vector<Token> tokens = vector(begin(path_tokenizer), end(path_tokenizer));
-    vector<Token> expected_tokens{
-        Token("/alfa/bravo/charlie/delta/", 0),
-        Token("bravo/charlie/delta/", 1),
-        Token("charlie/delta/", 2),
-        Token("delta/", 3),
-    };
+    //vector<Token> expected_tokens{
+    //    Token("/alfa/bravo/charlie/delta/", 0),
+    //    Token("bravo/charlie/delta/", 1),
+    //    Token("charlie/delta/", 2),
+    //    Token("delta/", 3),
+    //};
 
     for (auto &t : tokens)
         cout << string(t) << endl;
 
-    for (auto &t : expected_tokens)
-        cout << string(t) << endl;
+    //for (auto &t : expected_tokens)
+    //    cout << string(t) << endl;
 
     // regex _regex = regex("[^/]+");
     // sregex_iterator current = sregex_iterator(test_string_path.begin(), test_string_path.end(), _regex);

@@ -49,10 +49,10 @@ TEST(AnalysisTest, TestPathTokenizer)
     PathTokenizer path_tokenizer = PathTokenizer({.text = &test_string, .positions = true});
     vector<Token> tokens = vector(begin(path_tokenizer), end(path_tokenizer));
     vector<Token> expected_tokens{
-        Token("/alfa/bravo/charlie/delta/", 0),
-        Token("bravo/charlie/delta/", 1),
-        Token("charlie/delta/", 2),
-        Token("delta/", 3),
+        Token("alfa", 0),
+        Token("alfa/bravo", 1),
+        Token("alfa/bravo/charlie", 2),
+        Token("alfa/bravo/charlie/delta", 3),
     };
     string expected_tokens_str = format("[{}]", join(expected_tokens, ", "));
     string tokens_str = format("[{}]", join(tokens, ", "));

@@ -274,13 +274,13 @@ namespace analysis
   PathTokenizer::PathTokenizer(const PathTokenizer &t) : Composable(), current(), _end()
   {
     this->config = TokenizerConfig(t.config);
-    this->prev_end = t.prev_end;
 
     if (t.current_token != nullptr)
       this->current_token = new Token(*t.current_token);
 
     this->current = sregex_iterator(t.current);
     this->_end = sregex_iterator();
+    this->start = t.start;
   };
   bool PathTokenizer::operator==(const PathTokenizer &other) const { return current == other.current; };
   void PathTokenizer::handle_current_token()
@@ -297,8 +297,8 @@ namespace analysis
       current_token = new Token(config.chars, config.positions, false, config.remove_stops, 1.0, 0);
       if (config.text != nullptr)
       {
-        int __end = current->position() + config.text->length();
-        current_token->text = config.text->substr(0, __end);
+        start = current->position();
+        current_token->text = config.text->substr(start, current->position() + current->length() - 1);
         return;
       }
     }
@@ -307,7 +307,12 @@ namespace analysis
       current++;
       if (current != _end)
       {
-        current_token->text = config.text->substr(current->position(), config.text->length());
+
+        // cout << *config.text << endl;
+        // cout << current->position() << " " << current->length() << endl;
+        // cout << "--->" << config.text->substr(start, current->position() + current->length()) << endl;
+
+        current_token->text = config.text->substr(start, current->position() + current->length() - 1);
         if (config.positions)
           current_token->pos++;
         if (config.keep_original)

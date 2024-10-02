@@ -126,7 +126,7 @@ namespace analysis
     regex pattern;
     sregex_iterator current;
     sregex_iterator _end;
-    int prev_end = 0;
+    int start;
 
   public:
     TokenizerConfig config;
