@@ -1,20 +1,14 @@
 #include "analysis.hpp"
-#include <any>
-#include <cstddef>
 #include <format>
 #include <iostream>
 #include <iterator>
-#include <map>
-#include <memory>
 #include <numeric>
 #include <optional>
 #include <regex>
 #include <stdexcept>
 #include <string>
-#include <type_traits>
 #include <utility>
 #include <vector>
-#include <typeinfo>
 
 using namespace std;
 using namespace std::string_literals;
