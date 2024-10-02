@@ -307,11 +307,6 @@ namespace analysis
       current++;
       if (current != _end)
       {
-
-        // cout << *config.text << endl;
-        // cout << current->position() << " " << current->length() << endl;
-        // cout << "--->" << config.text->substr(start, current->position() + current->length()) << endl;
-
         current_token->text = config.text->substr(start, current->position() + current->length() - 1);
         if (config.positions)
           current_token->pos++;

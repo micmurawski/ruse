@@ -10,12 +10,8 @@ using namespace std::string_literals;
 
 TEST(AnalysisTest, TestRegexTokenizer)
 {
-    TokenizerConfig config = TokenizerConfig();
-    string test_string = "AAAaaaBBBbbbCCCcccDDDddd"s;
-    config.text = &test_string;
-    config.pattern = "[A-Z]+";
-    config.positions = true;
-    RegexTokenizer regex_tokenizer = RegexTokenizer(config);
+    string test_string = "AAAaaaBBBbbbCCCcccDDDddd";
+    RegexTokenizer regex_tokenizer = RegexTokenizer({.text = &test_string, .pattern = "[A-Z]+", .positions = true});
     vector<Token> tokens = vector(begin(regex_tokenizer), end(regex_tokenizer));
     vector<Token> expected_tokens{
         Token("AAA", 0),
@@ -30,10 +26,8 @@ TEST(AnalysisTest, TestRegexTokenizer)
 
 TEST(AnalysisTest, TestIDTokenizer)
 {
-    TokenizerConfig config = TokenizerConfig();
     string test_string = "AAAaaaBBBbbbCCCcccDDDddd"s;
-    config.text = &test_string;
-    IDTokenizer id_tokenizer = IDTokenizer(config);
+    IDTokenizer id_tokenizer = IDTokenizer({.text = &test_string});
     vector<Token> tokens = vector(begin(id_tokenizer), end(id_tokenizer));
     vector<Token> expected_tokens{
         Token("AAAaaaBBBbbbCCCcccDDDddd", 0),
