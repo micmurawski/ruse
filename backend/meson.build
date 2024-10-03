@@ -13,5 +13,5 @@ subdir('tests')
 executable('my_project',
            'src/main.cpp',
            include_directories : project_inc,
-           dependencies : [analysis_dep, utils_dep],
+           dependencies : [tokenizers_dep, utils_dep],
            install : true)

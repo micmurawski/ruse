@@ -1,7 +1,14 @@
-analysis_lib = static_library('analysis',
-                              'analysis.cpp',
-                              include_directories : ['.', '..'])
+core_lib = static_library('core', 'core.cpp')
 
-analysis_dep = declare_dependency(link_with : analysis_lib,
-                                  include_directories : ['.', '..'])
+tokenizers_lib = static_library(
+    'tokenizers',
+    'tokenizers.cpp',
+    link_with: core_lib,
+    include_directories : ['.', '..']
+)
+
+tokenizers_dep = declare_dependency(
+    link_with : tokenizers_lib,
+    include_directories : ['.', '..']
+)
 

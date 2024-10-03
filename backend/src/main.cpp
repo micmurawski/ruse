@@ -1,4 +1,5 @@
-#include "analysis/analysis.hpp"
+#include "analysis/core.hpp"
+#include "analysis/tokenizers.hpp"
 #include "utils/utils.hpp"
 #include <iostream>
 #include <string>
