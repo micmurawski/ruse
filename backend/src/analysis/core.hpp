@@ -48,7 +48,7 @@ public:
 };
 
 template <typename Impl>
-class Tokenizer
+class TokenIterator
 {
 protected:
     Token *current_token = nullptr;
@@ -77,35 +77,35 @@ class CompositeAnalyzer : public Composable
 
 public:
     vector<Composable> items;
-    optional<Tokenizer<T>> tokenizer;
+    optional<TokenIterator<T>> tokenizer;
 
     CompositeAnalyzer();
     CompositeAnalyzer(initializer_list<Composable> composables,
-                      optional<Tokenizer<T>> tokenizer = nullopt);
+                      optional<TokenIterator<T>> tokenizer = nullopt);
     bool has_morph();
     void add(const Composable &composable);
-    void add(const Tokenizer<T> &_tokenizer);
+    void add(const TokenIterator<T> &_tokenizer);
     void add(const CompositeAnalyzer &composite_analyzer);
     operator string() const;
 };
 
-// Tokenizer
+// TokenIterator
 template <typename Impl>
-Impl &Tokenizer<Impl>::operator++()
+Impl &TokenIterator<Impl>::operator++()
 {
     handle_current_token();
     Impl &tokenizer = static_cast<Impl &>(*this);
     return tokenizer;
 };
 template <typename Impl>
-Impl Tokenizer<Impl>::operator++(int)
+Impl TokenIterator<Impl>::operator++(int)
 {
     Impl tmp(static_cast<Impl &>(*this));
     operator++();
     return tmp;
 };
 template <typename Impl>
-void Tokenizer<Impl>::reset()
+void TokenIterator<Impl>::reset()
 {
     if (current_token != nullptr)
     {
@@ -114,19 +114,19 @@ void Tokenizer<Impl>::reset()
     }
 };
 template <typename Impl>
-Impl Tokenizer<Impl>::end() const
+Impl TokenIterator<Impl>::end() const
 {
     Impl tokenizer = Impl();
     return tokenizer;
 };
 template <typename Impl>
-bool Tokenizer<Impl>::operator!=(const Impl &other) const { return !(*this == other); }
+bool TokenIterator<Impl>::operator!=(const Impl &other) const { return !(*this == other); }
 template <typename Impl>
-Token &Tokenizer<Impl>::operator*() const { return *current_token; }
+Token &TokenIterator<Impl>::operator*() const { return *current_token; }
 template <typename Impl>
-Token *Tokenizer<Impl>::operator->() const { return current_token; };
+Token *TokenIterator<Impl>::operator->() const { return current_token; };
 template <typename Impl>
-Impl &Tokenizer<Impl>::begin() { return static_cast<Impl &>(*this); };
+Impl &TokenIterator<Impl>::begin() { return static_cast<Impl &>(*this); };
 
 template <typename T>
 string join(vector<T> const &vec, string delim)
@@ -145,12 +145,12 @@ CompositeAnalyzer<T> operator||(const L &left, const R &right)
     if constexpr (is_same<L, CompositeAnalyzer<T>>::value)
     {
         if (left.tokenizer.has_value())
-            res.tokenizer = optional<Tokenizer<T>>(left.tokenizer.value());
+            res.tokenizer = optional<TokenIterator<T>>(left.tokenizer.value());
     }
     else if constexpr (is_same<R, CompositeAnalyzer<T>>::value)
     {
         if (right.tokenizer.has_value())
-            res.tokenizer = optional<Tokenizer<T>>(right.tokenizer.value());
+            res.tokenizer = optional<TokenIterator<T>>(right.tokenizer.value());
     }
 
     res.add(left);
@@ -184,11 +184,11 @@ void CompositeAnalyzer<T>::add(const Composable &composable)
     items.push_back(composable);
 }
 template <typename T>
-void CompositeAnalyzer<T>::add(const Tokenizer<T> &_tokenizer)
+void CompositeAnalyzer<T>::add(const TokenIterator<T> &_tokenizer)
 {
     if (tokenizer.has_value())
         throw runtime_error("Tokenizer is already assigned");
-    tokenizer = optional<Tokenizer<T>>{_tokenizer};
+    tokenizer = optional<TokenIterator<T>>{_tokenizer};
 }
 template <typename T>
 void CompositeAnalyzer<T>::add(const CompositeAnalyzer &composite_analyzer)

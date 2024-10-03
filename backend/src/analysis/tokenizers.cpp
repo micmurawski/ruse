@@ -82,11 +82,11 @@ namespace analysis
       this->reset();
       return;
     }
-    else if (Tokenizer::current_token == nullptr)
+    else if (TokenIterator::current_token == nullptr)
     {
-      Tokenizer::current_token = new Token(config.chars, config.positions, false, config.remove_stops, 1.0, 0);
+      TokenIterator::current_token = new Token(config.chars, config.positions, false, config.remove_stops, 1.0, 0);
       if (config.positions)
-        Tokenizer::current_token->pos = -1;
+        TokenIterator::current_token->pos = -1;
 
       if (!config.tokenize)
       {

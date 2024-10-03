@@ -11,9 +11,18 @@
 
 using namespace std;
 // Token
-Token::Token(bool chars, bool positions, bool stopped, bool remove_stops,
-             float boost, int pos, int start_char, int end_char, string mode,
-             string text, string original)
+Token::Token(
+    bool chars,
+    bool positions,
+    bool stopped,
+    bool remove_stops,
+    float boost,
+    int pos,
+    int start_char,
+    int end_char,
+    string mode,
+    string text,
+    string original)
     : chars(chars), positions(positions), stopped(stopped),
       remove_stops(remove_stops), boost(boost), pos(pos),
       start_char(start_char), end_char(end_char), mode(mode), text(text),
@@ -31,8 +40,5 @@ bool Token::operator==(const Token &another) const
     return this->text == another.text && this->pos == another.pos && this->original == another.original;
 };
 // Composable
-Composable::operator string() const
-{
-    return format("Composable(is_morph={})", is_morph);
-}
+Composable::operator string() const { return format("Composable(is_morph={})", is_morph); }
 bool Composable::has_morph() { return is_morph; }

@@ -1,5 +1,5 @@
-#ifndef ANALYSIS_HPP
-#define ANALYSIS_HPP
+#ifndef TOKENIZERS_HPP
+#define TOKENIZERS_HPP
 #pragma once
 #include "core.hpp"
 #include <iterator>
@@ -36,7 +36,7 @@ namespace analysis
     operator string() const;
   };
 
-  class RegexTokenizer : public Tokenizer<RegexTokenizer>, public Composable
+  class RegexTokenizer : public TokenIterator<RegexTokenizer>, public Composable
   {
   protected:
     sregex_iterator current;
@@ -55,7 +55,7 @@ namespace analysis
     virtual void handle_current_token();
   };
 
-  class IDTokenizer : public Tokenizer<IDTokenizer>, public Composable
+  class IDTokenizer : public TokenIterator<IDTokenizer>, public Composable
   {
   protected:
     bool _end;
@@ -68,7 +68,7 @@ namespace analysis
     IDTokenizer operator++(int) override;
     bool operator==(const IDTokenizer &other);
   };
-  class PathTokenizer : public Tokenizer<PathTokenizer>, public Composable
+  class PathTokenizer : public TokenIterator<PathTokenizer>, public Composable
   {
   protected:
     regex pattern;
