@@ -9,10 +9,12 @@
 #include <vector>
 #include <numeric>
 #include <string>
+
 namespace analysis
 {
   using namespace std;
   using namespace string_literals;
+
   struct TokenizerConfig
   {
     string *text = nullptr;

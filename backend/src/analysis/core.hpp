@@ -1,22 +1,16 @@
 #ifndef CORE_HPP
 #define CORE_HPP
 #pragma once
-
 #include <string>
 #include <iterator>
 #include <optional>
 #include <vector>
-
 #include <format>
 #include <iostream>
-#include <iterator>
 #include <numeric>
-#include <optional>
 #include <regex>
 #include <stdexcept>
-#include <string>
 #include <utility>
-#include <vector>
 
 using namespace std;
 class Composable
