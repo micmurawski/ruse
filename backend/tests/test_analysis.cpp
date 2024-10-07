@@ -5,7 +5,6 @@
 #include <format>
 
 using namespace std;
-using namespace analysis;
 using namespace std::string_literals;
 
 TEST(AnalysisTest, TestRegexTokenizer)
