@@ -37,8 +37,13 @@ Token::Token(const char *str, int pos) : pos(pos), text(string(str)) {};
 Token::operator string() const { return format("Token(text=\"{}\", pos={}, original=\"{}\")", text, pos, original); };
 bool Token::operator==(const Token &another) const
 {
-    return this->text == another.text && this->pos == another.pos && this->original == another.original;
+  return this->text == another.text && this->pos == another.pos && this->original == another.original;
 };
 // Composable
-Composable::operator string() const { return format("Composable(is_morph={})", is_morph); }
 bool Composable::has_morph() { return is_morph; }
+
+ostream &operator<<(std::ostream &os, const Composable &comp)
+{
+  os << string(comp);
+  return os;
+};

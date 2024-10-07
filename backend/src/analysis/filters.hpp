@@ -46,25 +46,48 @@ const unordered_set<string> STOP_WORDS = {
     "you",
     "your"};
 
-regex recompile(string pattern, bool verbose = false, regex::flag_type flags = regex::ECMAScript)
+regex recompile(string pattern, regex::flag_type flags = regex::ECMAScript)
 {
     regex::flag_type cpp_flags = regex::ECMAScript;
     cpp_flags = cpp_flags | flags;
-
-    // if (verbose)
-    //    return regex(pattern, regex::extended);
-
     return regex(pattern, cpp_flags);
 }
 
-const regex url_regex_pattern = recompile("([A-Za-z+]+://\\S+?(?=\\s|[.]\\s|$|[.]$))|(\\w+([:.]?\\w+)*)", true);
+const regex url_regex_pattern = recompile("([A-Za-z+]+://\\S+?(?=\\s|[.]\\s|$|[.]$))|(\\w+([:.]?\\w+)*)");
 
-template <typename T>
-class Filter : virtual TokenIterator<Filter<T>>, public Composable
+class PassFilter : public Composable
 {
-protected:
-    TokenIterator<T> *token_iterator = nullptr;
-    Filter(const TokenIterator<T> token_iterator);
+public:
+    ~PassFilter() = default;
+    PassFilter() : Composable() {};
+    PassFilter(const PassFilter &other) : Composable(other) {};
+    PassFilter(PassFilter &&other) noexcept : Composable(std::move(other)) {};
+    PassFilter &operator=(const PassFilter &other)
+    {
+        if (this != &other)
+        {
+            Composable::operator=(other);
+        }
+        return *this;
+    };
+    PassFilter &operator=(PassFilter &&other) noexcept
+    {
+        if (this != &other)
+        {
+            Composable::operator=(std::move(other));
+        }
+        return *this;
+    };
+
+    virtual bool apply(const Token &token) { return true; };
+    virtual operator string() const override { return to_string(); };
+    virtual string to_string() const override { return "PassFilter()"; }
+};
+
+class XFilter : public PassFilter
+{
+
+    string to_string() const override { return "XFilter()"; }
 };
 
 #endif

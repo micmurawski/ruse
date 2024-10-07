@@ -8,6 +8,7 @@
 #include <vector>
 #include <optional>
 #include "analysis/filters.hpp"
+#include "analysis/analyzer.hpp"
 
 template <typename Iterator>
 std::vector<typename std::iterator_traits<Iterator>::value_type>
@@ -19,30 +20,23 @@ int main()
 {
     std::cout << "Hello from the main program!" << std::endl;
 
-    using namespace analysis;
-    using namespace std::string_literals;
-    cout << static_cast<int>(std::regex::ECMAScript) << endl;
-    cout << static_cast<int>(std::regex::extended) << endl;
-    cout << typeid(std::regex::ECMAScript).name() << endl;
-    cout << typeid(regex::flag_type(0)).name() << endl;
-    int val = 0 | 32;
-    regex::flag_type opt =  std::regex::ECMAScript | std::regex::extended;
-    cout << static_cast<int>(opt) << endl;
-    cout << typeid(regex::flag_type(opt)).name() << endl;
-   //  string test_string = "/alfa/bravo/charlie/delta/";
-   // PathTokenizer path_tokenizer = PathTokenizer({.text = &test_string, .positions = true});
-   // vector<Token> tokens = vector(begin(path_tokenizer), end(path_tokenizer));
-   // //vector<Token> expected_tokens{
-   // //    Token("/alfa/bravo/charlie/delta/", 0),
-   // //    Token("bravo/charlie/delta/", 1),
-   // //    Token("charlie/delta/", 2),
-   // //    Token("delta/", 3),
-   // //};
-//
-   // for (auto &t : tokens)
-   //     cout << string(t) << endl;
-//
-    //for (auto &t : expected_tokens)
+    string test_string = "/alfa/bravo/charlie/delta/";
+    cout << PassFilter() << endl;
+    auto analyzer1 = IDTokenizer() || PassFilter() || XFilter();
+    cout << string(analyzer1) << endl;
+    // PathTokenizer path_tokenizer = PathTokenizer({.text = &test_string, .positions = true});
+    // vector<Token> tokens = vector(begin(path_tokenizer), end(path_tokenizer));
+    // //vector<Token> expected_tokens{
+    // //    Token("/alfa/bravo/charlie/delta/", 0),
+    // //    Token("bravo/charlie/delta/", 1),
+    // //    Token("charlie/delta/", 2),
+    // //    Token("delta/", 3),
+    // //};
+    //
+    // for (auto &t : tokens)
+    //     cout << string(t) << endl;
+    //
+    // for (auto &t : expected_tokens)
     //    cout << string(t) << endl;
 
     // regex _regex = regex("[^/]+");
